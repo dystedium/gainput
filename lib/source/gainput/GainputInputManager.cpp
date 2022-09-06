@@ -23,6 +23,10 @@ static gainput::InputManager* gGainputInputManager;
 #elif defined(GAINPUT_PLATFORM_IOS) || defined(GAINPUT_PLATFORM_MAC) || defined(GAINPUT_PLATFORM_TVOS)
 #include <mach/mach.h>
 #include <mach/clock.h>
+
+#if defined(GAINPUT_PLATFORM_MAC)
+#include "keyboard/GainputInputDeviceKeyboardMac.h"
+#endif
 #endif
 
 #include <stdlib.h>
@@ -477,6 +481,93 @@ InputManager::HandleDeviceInput(DeviceInput const& input)
 	}
 }
 
+#endif
+
+#if defined(GAINPUT_PLATFORM_MAC)
+extern GainputNSUInteger GetNSEventType(void *event);
+
+void
+InputManager::HandleKeyboardEvent(void *event)
+{
+	for (DeviceMap::const_iterator it = devices_.begin();
+			it != devices_.end();
+			++it)
+	{
+#if defined(GAINPUT_DEV)
+		if (it->second->IsSynced())
+		{
+			continue;
+		}
+#endif
+		if (it->second->GetType() == InputDevice::DT_KEYBOARD)
+		{
+			InputDeviceKeyboard* keyboard = static_cast<InputDeviceKeyboard*>(it->second);
+			if (it->second->GetVariant() == InputDevice::DV_STANDARD)
+			{
+				InputDeviceKeyboardImplMac* keyboardImpl = static_cast<InputDeviceKeyboardImplMac*>(keyboard->GetPimpl());
+				GAINPUT_ASSERT(keyboardImpl);
+				keyboardImpl->HandleEvent(event);
+			}
+			// InputDeviceKeyboardImplMacRaw (DV_RAW variant) does not receive events using this code path
+		}
+	}
+}
+
+// copied from:
+//   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSEvent.h
+// we can't #include NSEvent.h in regular C++ code, so we copy the parts of the enum we want here.
+// this could be avoided by implementing helper functions such as `bool isEventForKeyboard(void *event)` in obj-C++ and calling that.
+// last copied 2022-09-05
+enum CopyOfNSEventType
+{
+	NSEventTypeLeftMouseDown             = 1,
+	NSEventTypeLeftMouseUp               = 2,
+	NSEventTypeRightMouseDown            = 3,
+	NSEventTypeRightMouseUp              = 4,
+	NSEventTypeMouseMoved                = 5,
+	NSEventTypeLeftMouseDragged          = 6,
+	NSEventTypeRightMouseDragged         = 7,
+	NSEventTypeKeyDown                   = 10,
+	NSEventTypeKeyUp                     = 11,
+	NSEventTypeFlagsChanged              = 12,
+	NSEventTypeScrollWheel               = 22,
+	NSEventTypeOtherMouseDown            = 25,
+	NSEventTypeOtherMouseUp              = 26,
+	NSEventTypeOtherMouseDragged         = 27,
+};
+
+void
+InputManager::HandleEvent(void *event)
+{
+	GainputNSUInteger eventType = GetNSEventType(event);
+
+	switch(eventType)
+	{
+	// NOTE: intentional fall-through below
+	case NSEventTypeKeyDown:
+	case NSEventTypeKeyUp:
+	case NSEventTypeFlagsChanged:
+		HandleKeyboardEvent(event);
+		break;
+
+	// constants for a possible future cocoa mouse implementation
+	// NSEventTypeLeftMouseDown
+	// NSEventTypeOtherMouseDown
+	// NSEventTypeRightMouseDown
+	// NSEventTypeLeftMouseUp
+	// NSEventTypeOtherMouseUp
+	// NSEventTypeRightMouseUp
+	// NSEventTypeLeftMouseDragged
+	// NSEventTypeRightMouseDragged
+	// NSEventTypeOtherMouseDragged
+	// NSEventTypeMouseMoved
+	// NSEventTypeScrollWheel
+
+	default:
+		// do nothing
+		break;
+	}
+}
 #endif
 
 void

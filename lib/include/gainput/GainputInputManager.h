@@ -79,6 +79,27 @@ public:
 	};
     void HandleDeviceInput(DeviceInput const& input);
 #endif
+#if defined(GAINPUT_PLATFORM_MAC)
+	/// [MAC ONLY] Lets the InputManager handle the given macOS NSEvent.
+
+	// options for integration
+	// * retain overall flow control in program code rather than NSApplication; call HandleEvent() while pumping events
+	// * (untested) override `- sendEvent:` on NSApplication, call HandleEvent() from there
+	// * (untested) override `- sendEvent:` on NSWindow, call HandleEvent() from there
+	// * (untested/incomplete) instead of calling HandleEvent(), implement an NSResponder
+	//   object, override `- keyDown:`/`- keyUp:`/`- flagsChanged:`, use NSWindow
+	//   `- makeFirstResponder:` to add it to event responder chain, implement and call
+	//   new InputManager handler function(s) from there
+
+	// TODO: look for a solution that allows passing NSEvent* between C++ and objective-C++
+	//   in a more type-safe manner.  using a macro that swaps between forward declaring
+	//   `@class NSEvent` and `typedef struct objc_object NSEvent` causes linker errors
+	//   due to inconsistent interpretation of the type between the call site and
+	//   function body definiton.
+
+	void HandleKeyboardEvent(void *event);
+	void HandleEvent(void *event);
+#endif
 
 	/// Updates the input state, call this every frame.
 	/**

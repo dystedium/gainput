@@ -95,6 +95,15 @@ namespace gainput
 #include <stdlib.h>
 struct AInputEvent;
 
+#elif defined(GAINPUT_PLATFORM_MAC)
+
+namespace gainput
+{
+	/// type of the same size as NSUInteger that we can use outside of objective-C code
+	// compile-time check for size of this type happens in GainputMac.mm
+	typedef unsigned long GainputNSUInteger;
+}
+
 #endif
 
 

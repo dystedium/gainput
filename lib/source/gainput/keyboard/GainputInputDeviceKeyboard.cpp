@@ -18,6 +18,7 @@
 	#include "GainputInputDeviceKeyboardAndroid.h"
 #elif defined(GAINPUT_PLATFORM_MAC)
 	#include "GainputInputDeviceKeyboardMac.h"
+	#include "GainputInputDeviceKeyboardMacRaw.h"
 #endif
 
 #include "GainputInputDeviceKeyboardNull.h"
@@ -57,7 +58,14 @@ InputDeviceKeyboard::InputDeviceKeyboard(InputManager& manager, DeviceId device,
 #elif defined(GAINPUT_PLATFORM_ANDROID)
 	impl_ = manager.GetAllocator().New<InputDeviceKeyboardImplAndroid>(manager, *this, *state_, *previousState_);
 #elif defined(GAINPUT_PLATFORM_MAC)
-	impl_ = manager.GetAllocator().New<InputDeviceKeyboardImplMac>(manager, *this, *state_, *previousState_);
+	if (variant == DV_STANDARD)
+	{
+		impl_ = manager.GetAllocator().New<InputDeviceKeyboardImplMac>(manager, *this, *state_, *previousState_);
+	}
+	else if (variant == DV_RAW)
+	{
+		impl_ = manager.GetAllocator().New<InputDeviceKeyboardImplMacRaw>(manager, *this, *state_, *previousState_);
+	}
 #endif
 
 	if (!impl_)

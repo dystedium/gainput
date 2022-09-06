@@ -8,7 +8,7 @@
 #include <gainput/GainputHelpers.h>
 #include <gainput/GainputLog.h>
 
-#include "GainputInputDeviceKeyboardMac.h"
+#include "GainputInputDeviceKeyboardMacRaw.h"
 
 #import <CoreFoundation/CoreFoundation.h>
 #import <IOKit/hid/IOHIDManager.h>
@@ -31,7 +31,7 @@ static void OnDeviceInput(void* inContext, IOReturn inResult, void* inSender, IO
 
 	IOHIDElementRef elem = IOHIDValueGetElement(value);
 
-	InputDeviceKeyboardImplMac* device = reinterpret_cast<InputDeviceKeyboardImplMac*>(inContext);
+	InputDeviceKeyboardImplMacRaw* device = reinterpret_cast<InputDeviceKeyboardImplMacRaw*>(inContext);
 	GAINPUT_ASSERT(device);
 
 	uint16_t scancode = IOHIDElementGetUsage(elem);
@@ -63,21 +63,21 @@ static void OnDeviceInput(void* inContext, IOReturn inResult, void* inSender, IO
 
 static void OnDeviceConnected(void* inContext, IOReturn inResult, void* inSender, IOHIDDeviceRef inIOHIDDeviceRef)
 {
-	InputDeviceKeyboardImplMac* device = reinterpret_cast<InputDeviceKeyboardImplMac*>(inContext);
+	InputDeviceKeyboardImplMacRaw* device = reinterpret_cast<InputDeviceKeyboardImplMacRaw*>(inContext);
 	GAINPUT_ASSERT(device);
 	device->deviceState_ = InputDevice::DS_OK;
 }
 
 static void OnDeviceRemoved(void* inContext, IOReturn inResult, void* inSender, IOHIDDeviceRef inIOHIDDeviceRef)
 {
-	InputDeviceKeyboardImplMac* device = reinterpret_cast<InputDeviceKeyboardImplMac*>(inContext);
+	InputDeviceKeyboardImplMacRaw* device = reinterpret_cast<InputDeviceKeyboardImplMacRaw*>(inContext);
 	GAINPUT_ASSERT(device);
 	device->deviceState_ = InputDevice::DS_UNAVAILABLE;
 }
 
 }
 
-InputDeviceKeyboardImplMac::InputDeviceKeyboardImplMac(InputManager& manager, InputDevice& device, InputState& state, InputState& previousState) :
+InputDeviceKeyboardImplMacRaw::InputDeviceKeyboardImplMacRaw(InputManager& manager, InputDevice& device, InputState& state, InputState& previousState) :
 	manager_(manager),
 	device_(device),
 	deviceState_(InputDevice::DS_UNAVAILABLE),
@@ -258,7 +258,7 @@ InputDeviceKeyboardImplMac::InputDeviceKeyboardImplMac(InputManager& manager, In
 	dialect_[kHIDUsage_KeyboardNonUSPound] = KeyNumbersign;
 }
 
-InputDeviceKeyboardImplMac::~InputDeviceKeyboardImplMac()
+InputDeviceKeyboardImplMacRaw::~InputDeviceKeyboardImplMacRaw()
 {
 	IOHIDManagerRef ioManager = reinterpret_cast<IOHIDManagerRef>(ioManager_);
 	IOHIDManagerUnscheduleFromRunLoop(ioManager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);

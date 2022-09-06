@@ -8,9 +8,16 @@
 namespace gainput
 {
 
+static_assert(sizeof(GainputNSUInteger) == sizeof(NSUInteger));
+
 bool MacIsApplicationKey()
 {
     return [[NSApplication sharedApplication] keyWindow ] != nil;
+}
+
+GainputNSUInteger GetNSEventType(void *event)
+{
+	return static_cast<NSEvent*>(event).type;
 }
 
 }

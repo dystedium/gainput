@@ -1,21 +1,24 @@
 
-#ifndef GAINPUTINPUTDEVICEKEYBOARDMAC_H_
-#define GAINPUTINPUTDEVICEKEYBOARDMAC_H_
+#ifndef GAINPUTINPUTDEVICEKEYBOARDMACRAW_H_
+#define GAINPUTINPUTDEVICEKEYBOARDMACRAW_H_
 
 #include "GainputInputDeviceKeyboardImpl.h"
 
 namespace gainput
 {
 
-class InputDeviceKeyboardImplMac : public InputDeviceKeyboardImpl
+class InputDeviceKeyboardImplMacRaw : public InputDeviceKeyboardImpl
 {
 public:
-	InputDeviceKeyboardImplMac(InputManager& manager, InputDevice& device, InputState& state, InputState& previousState);
+	InputDeviceKeyboardImplMacRaw(InputManager& manager, InputDevice& device, InputState& state, InputState& previousState);
+	~InputDeviceKeyboardImplMacRaw();
 
 	InputDevice::DeviceVariant GetVariant() const
 	{
-		return InputDevice::DV_STANDARD;
+		return InputDevice::DV_RAW;
 	}
+
+	InputDevice::DeviceState GetState() const { return deviceState_; }
 
 	void Update(InputDeltaState* delta)
 	{
@@ -35,10 +38,9 @@ public:
 		return textBuffer_.Get();
 	}
 
-	void HandleEvent(void *pEvent);
-
 	InputManager& manager_;
 	InputDevice& device_;
+	InputDevice::DeviceState deviceState_;
 	bool textInputEnabled_;
 	RingBuffer<GAINPUT_TEXT_INPUT_QUEUE_LENGTH, char> textBuffer_;
 	HashMap<unsigned, DeviceButtonId> dialect_;
@@ -46,6 +48,9 @@ public:
 	InputState* previousState_;
 	InputState nextState_;
 	InputDeltaState* delta_;
+
+private:
+	void* ioManager_;
 };
 
 }
